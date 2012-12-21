@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION dijkstra(startnode int, endnode int)
-  RETURNS TABLE(id int, distance int, path text) AS
+CREATE OR REPLACE FUNCTION dijkstra2(startnode int, endnode int)
+  RETURNS int AS
 $BODY$
 DECLARE
     rowcount int;
@@ -25,7 +25,7 @@ BEGIN
     IF rowcount <> 1 THEN
         DROP TABLE nodeestimate;
         RAISE 'Could not set start node';
-        RETURN;
+        RETURN -1;
     END IF;
 
     -- Run the algorithm until we decide that we are finished
@@ -54,28 +54,10 @@ BEGIN
 
     END LOOP;
 
-    -- Select the results. We use a recursive common table expression to
-    -- get the full path from the start node to the current node.
-    RETURN QUERY WITH RECURSIVE BacktraceCTE(id, distance, path)
-    AS (
-        -- Anchor/base member of the recursion, this selects the start node.
-        SELECT n.id, n.estimate, n.id::text
-	    FROM nodeestimate n JOIN node ON n.id = node.id
-	    WHERE n.id = startnode
-		
-        UNION ALL
-		
-        -- Recursive member, select all the nodes which have the previous
-        -- one as their predecessor. Concat the paths together.
-        SELECT n.id, n.estimate, cte.path || ',' || n.id::text
-            FROM nodeestimate n JOIN BacktraceCTE cte ON n.predecessor = cte.id
-            JOIN node ON n.id = node.id
-    ) SELECT  cte.id, cte.distance, cte.path FROM BacktraceCTE cte
-        WHERE cte.id = endnode OR endnode IS NULL -- This kind of where clause can potentially produce
-        ORDER BY cte.id;                          -- a bad execution plan, but I use it for simplicity here.
+    RETURN currentestimate;
+
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
 
