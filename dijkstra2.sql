@@ -1,3 +1,6 @@
+-- calculates shortest path from startnode to endnode
+-- returns total cost (sum of weights) to reach the destination
+
 CREATE OR REPLACE FUNCTION dijkstra2(startnode int, endnode int)
   RETURNS int AS
 $BODY$
@@ -53,6 +56,8 @@ BEGIN
             WHERE n.id = e.tonode AND n.done = FALSE AND e.fromnode = currentfromnode AND (currentestimate + e.weight) < n.estimate;
 
     END LOOP;
+
+    SELECT estimate INTO currentestimate FROM nodeestimate WHERE id = endnode;
 
     RETURN currentestimate;
 

@@ -1,3 +1,6 @@
+-- calculates shortest path from startnode to endnode
+-- returns destination with total cost and concatenated id's describing the path (array would be better I think)
+
 CREATE OR REPLACE FUNCTION dijkstra(startnode int, endnode int)
   RETURNS TABLE(id int, distance int, path text) AS
 $BODY$
